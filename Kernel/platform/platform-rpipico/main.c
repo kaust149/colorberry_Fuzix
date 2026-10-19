@@ -39,6 +39,13 @@ uint_fast8_t plt_param(char* p)
                 s += 4;
                 drv = TTYDRV_UART;
             }
+#ifdef CONFIG_COLORBERRY
+            else if(strncmp(s, "lcd", 3) == 0)
+            {
+                s += 3;
+                drv = TTYDRV_LCD;
+            }
+#endif
 
             if (drv == 0xff || !(*s))
             {

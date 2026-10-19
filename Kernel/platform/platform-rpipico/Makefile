@@ -21,6 +21,16 @@ ifeq ($(SUBTARGET),pico2_w)
 TOTALMEM=320
 endif
 
+# Waveshare RP2040-PiZero in a ColorBerry handheld (LCD + keyboard console)
+PICO_BOARD=${SUBTARGET}
+CMAKE_EXTRA=
+ifeq ($(SUBTARGET),colorberry)
+PICO_BOARD=waveshare_rp2040_pizero
+TOTALMEM=148
+CMAKE_EXTRA=-DCOLORBERRY=ON
+endif
+export SUBTARGET
+
 PICOTOOLFLAGS= --family rp2040
 ifeq (${SUBTARGET}, pico2)
 PICOTOOLFLAGS= --family data
@@ -42,7 +52,7 @@ build/fuzix.elf: ../../version.c build/Makefile
 
 build/Makefile: CMakeLists.txt $(wildcard ../../*.[chS]) $(wildcard ../../*/*.[chS])
 	mkdir -p build
-	(cd build && cmake -DPICO_BOARD=${SUBTARGET} -DTOTALMEM=${TOTALMEM} ..)
+	(cd build && cmake -DPICO_BOARD=${PICO_BOARD} -DTOTALMEM=${TOTALMEM} ${CMAKE_EXTRA} ..)
 
 image:: world
 	./update-flash.sh

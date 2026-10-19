@@ -8,6 +8,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_BUILD_TYPE Debug)
 set(PICO_COPY_TO_RAM 1)
 option(TOTALMEM "specify how much TOTALMEM is present" 0)
+option(COLORBERRY "build for a RP2040-PiZero in a ColorBerry handheld" OFF)
 
 add_compile_definitions(
 		PICO_HEAP_SIZE=0x0
@@ -85,6 +86,20 @@ target_link_libraries(fuzix
 	hardware_spi
 	tinyusb_device
 )
+
+if(COLORBERRY)
+	target_compile_definitions(fuzix PRIVATE CONFIG_COLORBERRY)
+	target_sources(fuzix PRIVATE
+		colorberry.c
+		cb_term.c
+		cb_keys.c
+		../../font/font6x8.c
+	)
+	# RAM is tight (everything runs from RAM): keep the new code small
+	set_source_files_properties(colorberry.c cb_term.c cb_keys.c
+		PROPERTIES COMPILE_OPTIONS "-Os")
+	target_link_libraries(fuzix hardware_i2c)
+endif()
 
 pico_set_float_implementation(fuzix none)
 pico_set_double_implementation(fuzix none)

@@ -9,6 +9,9 @@
 #include "picosdk.h"
 #include "config.h"
 #include "core1.h"
+#ifdef CONFIG_COLORBERRY
+#include "colorberry.h"
+#endif
 
 #define ssize_t __ssize_t
 #define time_t __time_t
@@ -130,10 +133,16 @@ void tud_umount_cb(void)
 
 static void core1_main(void)
 {
+#if NUM_DEV_TTY_USB > 0
 	tusb_init();
+#endif
+#ifdef CONFIG_COLORBERRY
+	cb_core1_init();
+#endif
 
 	for (;;)
 	{
+#if NUM_DEV_TTY_USB > 0
 		tud_task();
 
 		/*
@@ -164,6 +173,11 @@ static void core1_main(void)
 				console_buf_write(buf, b);
 			}
 		}
+#endif
+#ifdef CONFIG_COLORBERRY
+		/* Panel refresh, EXTCOMIN and keyboard polling */
+		cb_core1_poll();
+#endif
 	}
 }
 
@@ -171,7 +185,7 @@ void core1_init(void)
 {
 	//multicore_reset_core1();
 	critical_section_init(&critical_section);
-#if NUM_DEV_TTY_USB > 0
+#if NUM_DEV_TTY_USB > 0 || defined(CONFIG_COLORBERRY)
 	multicore_launch_core1(core1_main);
 #endif
 }

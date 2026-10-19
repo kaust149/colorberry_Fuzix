@@ -18,14 +18,23 @@
  *	    TX  GPIO 19
  *	    RX  GPIO 16
  *	    CS  GPIO 17
+ *  CONFIG_COLORBERRY (Waveshare RP2040-PiZero on-board TF slot)
+ *	    SCK GPIO 18
+ *	    TX  GPIO 19
+ *	    RX  GPIO 20
+ *	    CS  GPIO 21
  *  If Undefined
  *      SCK GPIO 2
  *      TX  GPIO 3
  *      RX  GPIO 4
  *      CS  GPIO 5
+ *
+ *  CONFIG_COLORBERRY is set by building with SUBTARGET=colorberry.
  */
 
+#ifndef CONFIG_COLORBERRY
 #define CONFIG_RC2040
+#endif
 
 /* We have a GPIO interface */
 #define CONFIG_DEV_GPIO
@@ -68,6 +77,10 @@
 /* Serial TTY, no VT or font */
 #undef CONFIG_VT
 #undef CONFIG_FONT8X8
+#ifdef CONFIG_COLORBERRY
+/* The LCD console has its own terminal emulator but uses the 6x8 font */
+#define CONFIG_FONT6X8
+#endif
 
 /* Built in NAND flash. Warning, it's unstable. */
 #define CONFIG_PICO_FLASH
@@ -77,7 +90,9 @@
 #define UDATA_BLKS  3
 #define UDATA_SIZE  (UDATA_BLKS << BLKSHIFT)
 
+#ifndef TOTALMEM
 #define TOTALMEM 160
+#endif
 #if TOTALMEM == 0
 #error TOTALMEM should have been defined via cmake
 #endif
@@ -131,8 +146,14 @@ extern uint8_t progbase[USERMEM];
 #define DEV_UART_1_RX_PIN 7
 #define DEV_UART_1_CTS_PIN 8
 #define DEV_UART_1_RTS_PIN 9
+#ifdef CONFIG_COLORBERRY
+#define NUM_DEV_TTY_LCD 1 /* built-in screen + keyboard */
+#define NUM_DEV_TTY_USB 1 /* one USB serial port for debugging, saves RAM */
+#else
+#define NUM_DEV_TTY_LCD 0
 #define NUM_DEV_TTY_USB 4 /* min 1 max 4. */
-#define NUM_DEV_TTY (NUM_DEV_TTY_UART + NUM_DEV_TTY_USB)
+#endif
+#define NUM_DEV_TTY (NUM_DEV_TTY_UART + NUM_DEV_TTY_USB + NUM_DEV_TTY_LCD)
 #define DEV_USB_DETECT_TIMEOUT 5000 /* (ms) Total timeout time to detect USB host connection*/
 #define DEV_USB_INIT_TIMEOUT 2000 /* (ms) Total timeout to try not swallow messages */
 

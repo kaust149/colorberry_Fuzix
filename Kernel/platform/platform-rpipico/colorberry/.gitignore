@@ -1,0 +1,4 @@
+termcap.full
+test/test_term
+test/test_keys
+test/screen.*

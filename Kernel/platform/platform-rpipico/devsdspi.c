@@ -11,7 +11,17 @@
 #include "config.h"
 #include <hardware/spi.h>
 
-#ifdef CONFIG_RC2040
+#ifdef CONFIG_COLORBERRY
+
+/* Waveshare RP2040-PiZero on-board TF card slot */
+#define Pico_SD_SCK 18
+#define Pico_SD_TX  19 // MOSI
+#define Pico_SD_RX  20 // MISO
+#define Pico_SD_CS  21
+
+#define Pico_SD_SPI_MOD spi0
+
+#elif defined(CONFIG_RC2040)
 
 /* RC2040 board */
 /* Pico SPI GPIO connected to SD SPI1 */

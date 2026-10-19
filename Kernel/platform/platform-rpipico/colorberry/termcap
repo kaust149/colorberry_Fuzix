@@ -1,0 +1,13 @@
+colorberry|ColorBerry LCD console 66x30:\
+	:am:bs:xn:ms:\
+	:co#66:it#8:li#30:\
+	:AL=\E[%dL:DC=\E[%dP:DL=\E[%dM:DO=\E[%dB:IC=\E[%d@:\
+	:LE=\E[%dD:RI=\E[%dC:SF=\E[%dS:SR=\E[%dT:UP=\E[%dA:\
+	:al=\E[L:bl=^G:cd=\E[J:ce=\E[K:cl=\E[H\E[2J:\
+	:cm=\E[%i%d;%dH:cr=^M:cs=\E[%i%d;%dr:dc=\E[P:dl=\E[M:\
+	:do=^J:ec=\E[%dX:ho=\E[H:le=^H:nd=\E[C:nw=^M^J:\
+	:rc=\E8:sc=\E7:sf=^J:sr=\EM:ta=^I:up=\E[A:\
+	:md=\E[1m:me=\E[0m:mr=\E[7m:so=\E[7m:se=\E[27m:\
+	:us=\E[4m:ue=\E[24m:ve=\E[?25h:vi=\E[?25l:\
+	:kb=^H:kd=\E[B:kh=\E[H:kl=\E[D:kr=\E[C:ku=\E[A:
+

@@ -9,6 +9,9 @@
 #include <pico/multicore.h>
 #include "core1.h"
 #include "devtty.h"
+#ifdef CONFIG_COLORBERRY
+#include "colorberry.h"
+#endif
 
 uint8_t ttybuf[TTYSIZ * NUM_DEV_TTY];
 
@@ -24,10 +27,13 @@ void no_setup(uint_fast8_t minor, uint_fast8_t devn, uint_fast8_t flags)
     used(flags);
 }
 
-struct ttydriver ttydrivers[2] =
+struct ttydriver ttydrivers[] =
     {
         {rawuart_putc, rawuart_ready, rawuart_sleeping, rawuart_getc, rawuart_setup},
         {usbconsole_putc, usbconsole_ready, usbconsole_sleeping, usbconsole_getc, no_setup},
+#ifdef CONFIG_COLORBERRY
+        {cb_lcd_putc, cb_lcd_ready, cb_lcd_sleeping, cb_kbd_getc, no_setup},
+#endif
 };
 
 static void devtty_defconfig(uint8_t drv, int count, int minor)
@@ -37,7 +43,7 @@ static void devtty_defconfig(uint8_t drv, int count, int minor)
     {
         ttymap[minor].tty = devnum++;
         ttymap[minor].drv = drv;
-        if (drv == TTYDRV_USB)
+        if (drv != TTYDRV_UART)
         {
             termios_mask[minor] = _CSYS;
         }
@@ -53,6 +59,10 @@ static void devtty_defconfig(uint8_t drv, int count, int minor)
 void devtty_early_init(void)
 {
     rawuart_early_init();
+#ifdef CONFIG_COLORBERRY
+    /* Panel up before core1 starts refreshing it */
+    cb_lcd_init();
+#endif
     core1_init();
     devtty_init();
 }
@@ -72,6 +82,19 @@ void devtty_init(void)
         ttyinq[i].q_wakeup = TTYSIZ / 2;
     }
 
+#ifdef CONFIG_COLORBERRY
+    /* Built-in screen and keyboard are the console; no waiting for USB.
+       tty1 = LCD, then USB serial, then UART0 */
+    if (defconfig)
+    {
+        devtty_defconfig(TTYDRV_LCD, NUM_DEV_TTY_LCD, 1);
+        devtty_defconfig(TTYDRV_USB, NUM_DEV_TTY_USB, 1 + NUM_DEV_TTY_LCD);
+        devtty_defconfig(TTYDRV_UART, NUM_DEV_TTY_UART, 1 + NUM_DEV_TTY_LCD + NUM_DEV_TTY_USB);
+        ttymap_count = NUM_DEV_TTY;
+        kprintf("devtty: %s as default tty\n", "lcd");
+        defconfig = 0;
+    }
+#endif
     if (defconfig)
     {
         absolute_time_t until = delayed_by_ms(get_absolute_time(), DEV_USB_DETECT_TIMEOUT);
