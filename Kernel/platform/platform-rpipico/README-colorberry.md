@@ -13,7 +13,7 @@ keyboard are the console, so no computer is needed once it is flashed.
   `beepy-kbd` layout and sticky modifiers.
 - **Storage:** root filesystem in the on-board flash (`hda`), with an optional SD card in the
   PiZero's TF slot (`hdb`).
-- **Serial:** USB serial on `tty2` and UART0 (GP0/GP1) on `tty3` for debugging.
+- **Serial:** USB serial on `tty2` and UART0 (GP0 TX on header pin 27, GP1 RX on pin 28) on `tty3` for debugging.
 
 The screen refresh, EXTCOMIN toggling and keyboard polling run on the second
 core, alongside USB.
@@ -49,13 +49,12 @@ is collected in `colorberry.h`:
 | KBD SCL | 5 | 3 | GP3 (I2C1) |
 | SD card | on-board | - | GP18 SCK, GP19 MOSI, GP20 MISO, GP21 CS |
 
-This mapping comes from the CircuitPython board definition for the
-RP2040-PiZero. Compare it with the GPxx labels on the back of the board before
-you rely on it.
+This mapping has been checked against the GPxx labels printed on the back of
+the RP2040-PiZero.
 
 Known limitation: header pin 12 (BCM18, the ColorBerry backlight) is the
 same net as the on-board SD clock, GP18. The backlight is therefore not
-controlled by FUZIX.
+controlled by FUZIX, and it may flicker while the SD card is in use.
 
 ## Building
 

@@ -9,8 +9,8 @@
  *
  * Pin mapping. The carrier is wired for the Pi Zero header (BCM numbers).
  * The RP2040-PiZero does NOT route BCM n to RP2040 GPIO n for every pin,
- * so every pin used here is collected below. Please check them against the
- * silkscreen on the back of your board before first power-up.
+ * so every pin used here is collected below. Verified against the GPxx
+ * silkscreen on the back of the RP2040-PiZero.
  *
  *   Function        Pi header pin  Pi BCM   RP2040-PiZero GPIO
  *   LCD SCLK        23             11       GP10  (SPI1 SCK)
@@ -28,7 +28,10 @@
  * On the RP2040-PiZero the on-board TF slot uses GP18..GP21 (SPI0), which
  * also appear on header pins 12/35/38/40. That means the ColorBerry
  * backlight line follows the SD clock; the backlight is therefore left
- * under SD control and not driven by this code.
+ * under SD control and not driven by this code (it may flicker while the
+ * SD card is being accessed).
+ *
+ * UART0 (GP0/GP1) is on header pins 27/28, not the usual Pi pins 8/10.
  */
 #ifndef COLORBERRY_H
 #define COLORBERRY_H
