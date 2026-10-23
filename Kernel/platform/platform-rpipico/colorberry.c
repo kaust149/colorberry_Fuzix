@@ -113,6 +113,7 @@ int cb_kbd_getc(uint8_t devn)
 #define REG_CF2         0x14
 #define REG_TOX         0x15
 #define REG_TOY         0x16
+#define REG_BKL         0x05
 #define REG_DRIVER_STATE 0x2D
 #define REG_WRITE       0x80
 
@@ -126,9 +127,12 @@ int cb_kbd_getc(uint8_t devn)
 #define I2C_TIMEOUT_US  2000
 
 static uint8_t kbd_ok;
+static uint8_t bl_on;
+static void button_poll(void);
 static uint8_t kbd_touch_state;
 static uint32_t kbd_next_poll;
 static uint8_t kbd_errors;
+static uint32_t kbd_retry;
 
 static int kbd_read(uint8_t reg, uint8_t *buf, size_t len)
 {
@@ -155,6 +159,7 @@ static void kbd_setup(void)
         return;
     kbd_write(REG_CF2, 0);
     kbd_write(REG_DRIVER_STATE, 1);
+    kbd_write(REG_BKL, bl_on ? 255 : 0);
     kbd_touch_state = 0;
     kbd_errors = 0;
 }
@@ -180,12 +185,18 @@ void cb_kbd_core1_poll(void)
         return;
 
     if (!kbd_ok) {
-        /* Not answering: try again once a second */
-        kbd_next_poll = now + 1000000;
-        kbd_setup();
+        /* Not answering: keep the side button alive, retry once a second */
+        button_poll();
+        if ((int32_t)(now - kbd_retry) >= 0) {
+            kbd_retry = now + 1000000;
+            kbd_setup();
+        }
+        kbd_next_poll = now + CB_KBD_POLL_US;
         return;
     }
     kbd_next_poll = now + CB_KBD_POLL_US;
+
+    button_poll();
 
     if (kbd_read(REG_KEY, &n, 1)) {
         if (++kbd_errors > 10)
@@ -218,6 +229,51 @@ void cb_kbd_core1_poll(void)
     }
 }
 
+/* ---- Backlight and side button (core1) -------------------------------- */
+
+static uint8_t btn_count;
+static uint8_t btn_down;
+
+static void backlight_set(uint8_t on)
+{
+    bl_on = on;
+#ifdef CB_LCD_BL_PIN
+    gpio_put(CB_LCD_BL_PIN, on);
+#endif
+    /* Keyboard backlight follows the screen, as on ColorBerry Linux */
+    if (kbd_ok)
+        kbd_write(REG_BKL, on ? 255 : 0);
+}
+
+static void button_init(void)
+{
+#ifdef CB_LCD_BL_PIN
+    gpio_init(CB_LCD_BL_PIN);
+    gpio_set_dir(CB_LCD_BL_PIN, GPIO_OUT);
+#endif
+    gpio_init(CB_BUTTON_PIN);
+    gpio_set_dir(CB_BUTTON_PIN, GPIO_IN);
+    gpio_pull_up(CB_BUTTON_PIN);
+    backlight_set(0);       /* off at boot: the panel is readable without it */
+}
+
+/* Called every keyboard poll: debounce, toggle on release */
+static void button_poll(void)
+{
+    uint8_t pressed = !gpio_get(CB_BUTTON_PIN);
+
+    if (pressed == btn_down) {
+        btn_count = 0;
+        return;
+    }
+    if (++btn_count < CB_BUTTON_DEBOUNCE)
+        return;
+    btn_count = 0;
+    btn_down = pressed;
+    if (!pressed)
+        backlight_set(!bl_on);
+}
+
 /* ---- core1 main work -------------------------------------------------- */
 
 static uint32_t vcom_next;
@@ -228,6 +284,7 @@ void cb_core1_init(void)
 {
     vcom_next = time_us_32();
     cb_kbd_core1_init();
+    button_init();
 }
 
 void cb_core1_poll(void)

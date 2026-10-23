@@ -3,10 +3,11 @@ set -e
 
 IMG=filesystem.img
 
-FSSIZE=2547
+FSSIZE=${FSSIZE:-2547}
+ISIZE=${ISIZE:-32}
 
 rm -f ${IMG}
-../../../Standalone/mkfs ${IMG} 32 $FSSIZE
+../../../Standalone/mkfs ${IMG} $ISIZE $FSSIZE
 ../../../Standalone/ucp ${IMG} <<EOF
 cd /
 mkdir bin

@@ -83,8 +83,10 @@ void device_init(void)
 #ifdef CONFIG_NET
 	netdev_init();
 #endif
+#ifdef CONFIG_SD
     sd_rawinit();
     devsd_init();
+#endif
 }
 
 /* vim: sw=4 ts=4 et: */

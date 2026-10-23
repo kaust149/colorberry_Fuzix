@@ -24,10 +24,20 @@ endif
 # Waveshare RP2040-PiZero in a ColorBerry handheld (LCD + keyboard console)
 PICO_BOARD=${SUBTARGET}
 CMAKE_EXTRA=
+FTL_KB=1952
 ifeq ($(SUBTARGET),colorberry)
 PICO_BOARD=waveshare_rp2040_pizero
 TOTALMEM=148
 CMAKE_EXTRA=-DCOLORBERRY=ON
+# 16MB flash minus the 96K kernel area: must match devflash.c's geometry
+FTL_KB=16288
+# 8MB root filesystem with 1024 inodes; the rest is FTL spare space
+export FSSIZE=16384
+export ISIZE=128
+# make SUBTARGET=colorberry CB_SD=1 : use the SD card, no backlight control
+ifeq ($(CB_SD),1)
+CMAKE_EXTRA+=-DCB_USE_SD=ON
+endif
 endif
 export SUBTARGET
 
@@ -56,7 +66,7 @@ build/Makefile: CMakeLists.txt $(wildcard ../../*.[chS]) $(wildcard ../../*/*.[c
 
 image:: world
 	./update-flash.sh
-	../../../Standalone/mkftl -s 1952 -e 0x1000 -g 10 filesystem.img -o filesystem.ftl
+	../../../Standalone/mkftl -s ${FTL_KB} -e 0x1000 -g 10 filesystem.img -o filesystem.ftl
 	${PICOTOOL} uf2 convert filesystem.ftl -t bin filesystem.uf2 -o 0x10018000 ${PICOTOOLFLAGS}
 
 diskimage:

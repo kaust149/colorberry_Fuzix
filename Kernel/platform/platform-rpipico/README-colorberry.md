@@ -11,8 +11,10 @@ keyboard are the console, so no computer is needed once it is flashed.
   and delete line. The terminal type is `colorberry` and is set up for you on `tty1`.
 - **Keyboard:** Beepy-style keyboard controller over I2C, with the Linux
   `beepy-kbd` layout and sticky modifiers.
-- **Storage:** root filesystem in the on-board flash (`hda`), with an optional SD card in the
-  PiZero's TF slot (`hdb`).
+- **Storage:** an 8 MB root filesystem in the PiZero's 16 MB on-board flash (`hda`).
+  The SD slot is off by default (see "Backlight or SD card" below).
+- **Backlight:** the side button toggles the screen and keyboard backlights.
+  Both start off, since the panel is readable without them.
 - **Serial:** USB serial on `tty2` and UART0 (GP0 TX on header pin 27, GP1 RX on pin 28) on `tty3` for debugging.
 
 The screen refresh, EXTCOMIN toggling and keyboard polling run on the second
@@ -64,9 +66,20 @@ Other notes from the RP2040-PiZero schematic:
   its battery charger. Do not also fit a battery to the PiZero's own battery
   connector while it is inside the ColorBerry.
 
-Known limitation: header pin 12 (BCM18, the ColorBerry backlight) is the
-same net as the on-board SD clock, GP18. The backlight is therefore not
-controlled by FUZIX, and it may flicker while the SD card is in use.
+## Backlight or SD card
+
+Header pin 12 (BCM18, the ColorBerry backlight) is wired to GP18 on the
+PiZero, which is also the clock line of its TF card slot. Only one of the two
+can be used, so there are two builds:
+
+| Build | Root filesystem | Backlight |
+|---|---|---|
+| `make SUBTARGET=colorberry image` (default) | on-board flash, `hda` | side button toggles it |
+| `make SUBTARGET=colorberry CB_SD=1 image` | SD card, `hdb1` (flash `hda` still works) | flickers with SD activity |
+
+With the default build, leave the SD slot empty or ignore it; the card is
+never clocked because its chip select stays high. If you switch builds, run
+`rm -rf build` first.
 
 ## Building
 
@@ -87,7 +100,8 @@ the RAM.
 ## Installing
 
 1. Hold BOOT on the PiZero, plug in USB and copy `fuzix.uf2` to the drive.
-2. Do the same with `filesystem.uf2`.
+2. Do the same with `filesystem.uf2`. It covers the whole 16 MB flash
+   (about 32 MB as a UF2), so the copy takes a minute or two.
 3. At the `bootdev:` prompt, type `hda` and press Enter (or `hdb1` to boot
    from the first partition of an SD card).
 4. Log in as `root` (no password).

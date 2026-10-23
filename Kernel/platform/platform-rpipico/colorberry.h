@@ -26,10 +26,11 @@
  *   KBD INT         7              4        GP14  (unused, we poll)
  *
  * On the RP2040-PiZero the on-board TF slot uses GP18..GP21 (SPI0), which
- * also appear on header pins 12/35/38/40. That means the ColorBerry
- * backlight line follows the SD clock; the backlight is therefore left
- * under SD control and not driven by this code (it may flicker while the
- * SD card is being accessed).
+ * also appear on header pins 12/35/38/40, so the ColorBerry backlight and
+ * the SD clock are the same wire. By default the SD card is disabled and
+ * GP18 drives the backlight (toggled by the side button). Build with
+ * CB_SD=1 (-DCB_USE_SD) to use the SD card instead; the backlight then
+ * flickers with SD activity.
  *
  * UART0 (GP0/GP1) is on header pins 27/28, not the usual Pi pins 8/10.
  */
@@ -53,6 +54,13 @@
 #endif
 /* EXTCOMIN half-period in microseconds (datasheet: 1..140 Hz) */
 #define CB_LCD_VCOM_US      250000
+
+/* Backlight (header pin 12 = GP18, also the SD clock) and side button */
+#ifndef CB_USE_SD
+#define CB_LCD_BL_PIN       18
+#endif
+#define CB_BUTTON_PIN       17      /* header pin 11, active low */
+#define CB_BUTTON_DEBOUNCE  3       /* polls (x CB_KBD_POLL_US) */
 
 /* ---- Keyboard --------------------------------------------------------- */
 #define CB_KBD_I2C          i2c1

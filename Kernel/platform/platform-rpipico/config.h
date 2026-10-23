@@ -65,6 +65,13 @@
 /* Enable SD card code. */
 #define CONFIG_SD
 #define SD_DRIVE_COUNT 1
+#if defined(CONFIG_COLORBERRY) && !defined(CB_USE_SD)
+/* On the RP2040-PiZero the SD clock (GP18) is also the ColorBerry
+   backlight (header pin 12). By default the backlight wins and the root
+   filesystem lives in the 16MB on-board flash. Build with CB_SD=1 to use
+   the SD card instead (the backlight then just follows the SD clock). */
+#undef CONFIG_SD
+#endif
 /* Enable dynamic swap. */
 #define CONFIG_PLATFORM_SWAPCTL
 /* Platform manages process brk. */
