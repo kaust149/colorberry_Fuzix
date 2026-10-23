@@ -115,10 +115,14 @@ int main(void)
     }
     ramsize = (SRAM_END - SRAM_BASE) / 1024;
     procmem = USERMEM / 1024;
+#ifndef CONFIG_COLORBERRY
     //turn on power led
     gpio_init(POWER_LED);
     gpio_set_dir(POWER_LED, GPIO_OUT);
     gpio_put(POWER_LED, 1);
+#endif
+    /* RP2040-PiZero: the power LED is hard-wired to 3V3 and GPIO25 is
+       header pin 22 (BCM25), so leave it alone */
 
     di();
     fuzix_main();

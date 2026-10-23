@@ -44,7 +44,7 @@ endif
 
 include ../../../version.mk
 
-build/fuzix.elf: ../../version.c build/Makefile
+build/fuzix.elf: ../../version.c build/Makefile $(wildcard *.[chS])
 	$(MAKE) -C build
 
 ../../version.c:

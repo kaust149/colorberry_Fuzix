@@ -52,6 +52,18 @@ is collected in `colorberry.h`:
 This mapping has been checked against the GPxx labels printed on the back of
 the RP2040-PiZero.
 
+Other notes from the RP2040-PiZero schematic:
+
+- The keyboard I2C pins (GP2/GP3) have no pull-up resistors on the PiZero.
+  A real Pi Zero has 1.8k pull-ups there, so the ColorBerry may rely on them.
+  FUZIX turns on the RP2040's weak internal pull-ups. If the keyboard does not
+  respond, fit 2.2k-4.7k resistors from pins 3 and 5 to 3.3V.
+- GP2/GP3 and GP22/GP23 also go to the mini-HDMI socket through series
+  resistors. Leave HDMI unplugged while running in the ColorBerry.
+- Header 5V (pins 2/4) is the same net as the PiZero's USB-C VBUS and feeds
+  its battery charger. Do not also fit a battery to the PiZero's own battery
+  connector while it is inside the ColorBerry.
+
 Known limitation: header pin 12 (BCM18, the ColorBerry backlight) is the
 same net as the on-board SD clock, GP18. The backlight is therefore not
 controlled by FUZIX, and it may flicker while the SD card is in use.
