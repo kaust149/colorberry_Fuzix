@@ -25,9 +25,19 @@ endif
 PICO_BOARD=${SUBTARGET}
 CMAKE_EXTRA=
 FTL_KB=1952
+# SUBTARGET=colorberry      : Waveshare RP2040-PiZero
+# SUBTARGET=colorberry2350  : Waveshare RP2350-PiZero
+ifeq ($(SUBTARGET),colorberry2350)
+CB_BOARD=waveshare_rp2350_pizero
+CB_MEM=312
+endif
 ifeq ($(SUBTARGET),colorberry)
-PICO_BOARD=waveshare_rp2040_pizero
-TOTALMEM=148
+CB_BOARD=waveshare_rp2040_pizero
+CB_MEM=148
+endif
+ifneq ($(CB_BOARD),)
+PICO_BOARD=$(CB_BOARD)
+TOTALMEM=$(CB_MEM)
 CMAKE_EXTRA=-DCOLORBERRY=ON
 # 16MB flash minus the 96K kernel area: must match devflash.c's geometry
 FTL_KB=16288
@@ -43,6 +53,9 @@ export SUBTARGET
 
 PICOTOOLFLAGS= --family rp2040
 ifeq (${SUBTARGET}, pico2)
+PICOTOOLFLAGS= --family data
+endif
+ifeq (${SUBTARGET}, colorberry2350)
 PICOTOOLFLAGS= --family data
 endif
 

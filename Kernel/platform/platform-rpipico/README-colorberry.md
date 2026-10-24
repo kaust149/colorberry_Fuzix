@@ -81,6 +81,24 @@ With the default build, leave the SD slot empty or ignore it; the card is
 never clocked because its chip select stays high. If you switch builds, run
 `rm -rf build` first.
 
+## RP2350-PiZero
+
+The same port also builds for the Waveshare RP2350-PiZero:
+
+```
+make SUBTARGET=colorberry2350 image          # backlight, root on flash
+make SUBTARGET=colorberry2350 CB_SD=1 image  # SD card instead
+```
+
+Everything else (flashing, `bootdev: hda`, keys) is the same. The RP2350 has
+520 KB of RAM, so programs get 312 KB instead of 148 KB.
+
+**The pin map has not been checked for this board yet.** It assumes the
+RP2350-PiZero routes the header like the RP2040-PiZero. Waveshare's SDK board
+file agrees for SPI1 (GP10/11) and I2C1 (GP2/3), but DISP/EXTCOMIN
+(GP22/GP23) and the TF slot (GP18-21) are unconfirmed. Compare the GPxx
+labels on the back of the board with the table above before relying on it.
+
 ## Building
 
 ```

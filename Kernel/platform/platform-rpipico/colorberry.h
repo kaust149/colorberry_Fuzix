@@ -41,6 +41,15 @@
 #include <tty.h>
 #include "cb_term.h"
 
+/*
+ * RP2350-PiZero (SUBTARGET=colorberry2350): Waveshare's SDK board file uses
+ * the same SPI1 (GP10/11/12) and I2C1 (GP2/3) pins as the header on the
+ * RP2040-PiZero, so the same map is assumed here. NOT YET CHECKED against
+ * the RP2350-PiZero schematic/silkscreen - in particular DISP/EXTCOMIN
+ * (GP22/GP23) and the TF slot, which may have moved because HSTX (DVI) on
+ * the RP2350 lives on GP12-GP19.
+ */
+
 /* ---- Display ---------------------------------------------------------- */
 #define CB_LCD_SPI          spi1
 #define CB_LCD_SCK_PIN      10

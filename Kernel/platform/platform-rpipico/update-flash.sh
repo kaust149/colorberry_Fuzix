@@ -476,7 +476,7 @@ chmod 0644 advent.db
 EOF
 
 # ColorBerry: LCD console login on tty1 with its own termcap entry
-if [ "$SUBTARGET" = "colorberry" ]; then
+if [ "$SUBTARGET" = "colorberry" ] || [ "$SUBTARGET" = "colorberry2350" ]; then
 cat ../../../Standalone/filesystem-src/etc-files/termcap colorberry/termcap > colorberry/termcap.full
 ../../../Standalone/ucp ${IMG} <<EOF
 cd /etc
