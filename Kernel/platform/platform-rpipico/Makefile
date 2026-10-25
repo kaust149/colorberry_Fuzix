@@ -47,6 +47,30 @@ export ISIZE=128
 # make SUBTARGET=colorberry CB_SD=1 : use the SD card, no backlight control
 ifeq ($(CB_SD),1)
 CMAKE_EXTRA+=-DCB_USE_SD=ON
+else
+CMAKE_EXTRA+=-DCB_USE_SD=OFF
+endif
+# make SUBTARGET=colorberry CB_FONT=8x16 : console font (see cb_term.h)
+CB_FONT ?= 6x8
+CB_TEXT_4x8=100 30
+CB_TEXT_6x8=66 30
+CB_TEXT_8x8=50 30
+CB_TEXT_8x16=50 15
+CB_TEXT_12x16=33 15
+CB_TEXT_16x16=25 15
+CB_TEXT=$(CB_TEXT_$(CB_FONT))
+ifeq ($(CB_TEXT),)
+$(error CB_FONT must be one of 4x8 6x8 8x8 8x16 12x16 16x16)
+endif
+CMAKE_EXTRA+=-DCB_FONT=$(CB_FONT)
+# columns and rows for the termcap entry and getty (update-flash.sh)
+export CB_COLS=$(word 1,$(CB_TEXT))
+export CB_ROWS=$(word 2,$(CB_TEXT))
+# CMake caches its options: when CB_SD or CB_FONT change, delete
+# build/Makefile so cmake runs again with the new values
+CB_STAMP=sd=$(CB_SD) font=$(CB_FONT)
+ifneq ($(CB_STAMP),$(shell cat build/.colorberry 2>/dev/null))
+$(shell rm -f build/Makefile)
 endif
 endif
 export SUBTARGET
@@ -76,6 +100,9 @@ build/fuzix.elf: ../../version.c build/Makefile $(wildcard *.[chS])
 build/Makefile: CMakeLists.txt $(wildcard ../../*.[chS]) $(wildcard ../../*/*.[chS])
 	mkdir -p build
 	(cd build && cmake -DPICO_BOARD=${PICO_BOARD} -DTOTALMEM=${TOTALMEM} ${CMAKE_EXTRA} ..)
+ifneq ($(CB_BOARD),)
+	echo "$(CB_STAMP)" > build/.colorberry
+endif
 
 image:: world
 	./update-flash.sh

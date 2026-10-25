@@ -85,8 +85,16 @@
 #undef CONFIG_VT
 #undef CONFIG_FONT8X8
 #ifdef CONFIG_COLORBERRY
-/* The LCD console has its own terminal emulator but uses the 6x8 font */
+/* The LCD console has its own terminal emulator; CB_FONT_* (set by
+   make CB_FONT=...) picks which of the kernel fonts it draws with */
+#if defined(CB_FONT_4X8)
+#define CONFIG_FONT_4x8
+#elif defined(CB_FONT_8X8) || defined(CB_FONT_8X16) || defined(CB_FONT_16X16)
+#define CONFIG_FONT8X8
+#define CONFIG_FONT8X8SMALL
+#else
 #define CONFIG_FONT6X8
+#endif
 #endif
 
 /* Built in NAND flash. Warning, it's unstable. */

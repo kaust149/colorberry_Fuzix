@@ -56,12 +56,12 @@ int main(int argc, char **argv)
     CHECK(pix(399, 239) == CB_WHITE, "blank screen is white");
 
     /* Boot-like text and wrapping */
-    feed("FUZIX version 0.5\r\nColorBerry LCD console 66x30\r\n");
-    for (int i = 0; i < 70; i++) cb_term_putc('0' + i % 10);
+    feed("FUZIX version 0.5\r\nColorBerry LCD console\r\n");
+    for (int i = 0; i < CB_COLS + 4; i++) cb_term_putc('0' + i % 10);
     feed("\r\n");
     render_all();
     CHECK(cell_has(0, 0, CB_BLACK), "text drawn black at (0,0)");
-    CHECK(cell_has(0, 3, CB_BLACK), "70 chars wrapped onto row 3");
+    CHECK(cell_has(0, 3, CB_BLACK), "COLS+4 chars wrapped onto row 3");
     CHECK(!cell_has(5, 3, CB_BLACK), "only 4 chars on wrapped row");
 
     /* Colours */
@@ -77,16 +77,16 @@ int main(int argc, char **argv)
     feed("\033[10;20HXY\033[10;1H\033[K");
     render_all();
     CHECK(!cell_has(19, 9, CB_BLACK), "CSI K erased row 10");
-    feed("\033[12;30Hhere\033[1D\033[1A^");
+    feed("\033[12;20Hhere\033[1D\033[1A^");
     render_all();
-    CHECK(cell_has(32, 10, CB_BLACK), "relative moves land at row 11 col 33");
+    CHECK(cell_has(22, 10, CB_BLACK), "relative moves land at row 11 col 23");
 
     /* Scroll region: lines 15-20, scroll it, rest untouched */
-    feed("\033[15;1Hline15\033[20;1Hline20\033[25;1Houtside");
-    feed("\033[15;20r\033[20;1H\n");
+    feed("\033[3;1Hline3\033[8;1Hline8\033[12;1Houtside");
+    feed("\033[3;8r\033[8;1H\n");
     render_all();
-    CHECK(cell_has(0, 18, CB_BLACK), "line20 scrolled up to row 19");
-    CHECK(cell_has(0, 24, CB_BLACK), "row 25 outside region kept");
+    CHECK(cell_has(0, 6, CB_BLACK), "line8 scrolled up to row 7");
+    CHECK(cell_has(0, 11, CB_BLACK), "row 12 outside region kept");
     feed("\033[r");
 
     /* Full scroll: push 40 lines */

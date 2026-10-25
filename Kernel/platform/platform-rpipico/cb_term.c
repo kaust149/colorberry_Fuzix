@@ -14,7 +14,17 @@
 #include "cb_term.h"
 #include <string.h>
 
-extern const unsigned char fontdata_6x8[96 * 8];
+/* Glyph row r of character c (0x20-0x7F), leftmost pixel in bit GLYPH_W-1 */
+#if CB_GLYPH_W == 4
+extern const unsigned char font4x8[];
+#define GLYPH(c, r)     (font4x8[((c) - 0x20) * 8 + (r)] >> 4)
+#elif CB_GLYPH_W == 8
+extern const unsigned char fontdata_8x8[];      /* CONFIG_FONT8X8SMALL: 0x20-0x7F */
+#define GLYPH(c, r)     (fontdata_8x8[((c) - 0x20) * 8 + (r)])
+#else
+extern const unsigned char fontdata_6x8[];
+#define GLYPH(c, r)     (fontdata_6x8[((c) - 0x20) * 8 + (r)])
+#endif
 
 /* Attribute byte: fg in bits 0-2, bg in bits 3-5, underline bit 6 */
 #define A_FG(a)     ((a) & 7)
@@ -521,13 +531,13 @@ void cb_term_init(void)
 void cb_term_render_line(unsigned y, uint8_t *out)
 {
     unsigned row = y / CB_FONT_H;
-    unsigned gy = y % CB_FONT_H;
+    unsigned gy = (y % CB_FONT_H) / CB_SCALE_Y;
     const uint8_t *ch = cell_ch[row];
     const uint8_t *at = cell_at[row];
     int curcol = (cur_on && cur_y == row) ? cur_x : -1;
     uint32_t acc = 0;
     unsigned nbits = 0, o = 0, c;
-    int i;
+    int i, s;
 
     for (c = 0; c < CB_COLS; c++) {
         uint8_t chr = ch[c];
@@ -536,26 +546,29 @@ void cb_term_render_line(unsigned y, uint8_t *out)
         uint8_t g;
 
         if (chr >= 0x20 && chr < 0x80)
-            g = fontdata_6x8[(chr - 0x20) * CB_FONT_H + gy];
+            g = GLYPH(chr, gy);
         else
             g = 0;
-        if ((a & A_UL) && gy == CB_FONT_H - 1)
-            g = 0x3F;
+        if ((a & A_UL) && gy == CB_GLYPH_H - 1)
+            g = (1 << CB_GLYPH_W) - 1;
         if ((int)c == curcol) {
             uint8_t t = f;
             f = b;
             b = t;
         }
-        for (i = CB_FONT_W - 1; i >= 0; i--) {
-            acc = (acc << 3) | (((g >> i) & 1) ? f : b);
-            nbits += 3;
-            if (nbits >= 8) {
-                nbits -= 8;
-                out[o++] = (uint8_t)(acc >> nbits);
+        for (i = CB_GLYPH_W - 1; i >= 0; i--) {
+            uint8_t px = ((g >> i) & 1) ? f : b;
+            for (s = 0; s < CB_SCALE_X; s++) {
+                acc = (acc << 3) | px;
+                nbits += 3;
+                if (nbits >= 8) {
+                    nbits -= 8;
+                    out[o++] = (uint8_t)(acc >> nbits);
+                }
             }
         }
     }
-    /* Right margin: 400 - 66*6 = 4 pixels of default background */
+    /* Right margin (e.g. 400 - 66*6 = 4 pixels) in the default background */
     for (c = CB_COLS * CB_FONT_W; c < CB_LCD_WIDTH; c++) {
         acc = (acc << 3) | CB_DEFAULT_BG;
         nbits += 3;

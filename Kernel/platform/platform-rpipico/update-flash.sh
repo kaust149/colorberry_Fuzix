@@ -477,12 +477,17 @@ EOF
 
 # ColorBerry: LCD console login on tty1 with its own termcap entry
 if [ "$SUBTARGET" = "colorberry" ] || [ "$SUBTARGET" = "colorberry2350" ]; then
-cat ../../../Standalone/filesystem-src/etc-files/termcap colorberry/termcap > colorberry/termcap.full
+# size the termcap entry and getty for the console font (Makefile CB_FONT)
+C=${CB_COLS:-66}
+R=${CB_ROWS:-30}
+sed "s/66x30/${C}x${R}/; s/co#66/co#${C}/; s/li#30/li#${R}/" colorberry/termcap > colorberry/termcap.sized
+sed "s/66 columns x 30 rows/${C} columns x ${R} rows/; s/colorberry 66 30/colorberry ${C} ${R}/" colorberry/inittab > colorberry/inittab.sized
+cat ../../../Standalone/filesystem-src/etc-files/termcap colorberry/termcap.sized > colorberry/termcap.full
 ../../../Standalone/ucp ${IMG} <<EOF
 cd /etc
 rm inittab
 rm termcap
-bget colorberry/inittab inittab
+bget colorberry/inittab.sized inittab
 bget colorberry/termcap.full termcap
 chmod 0644 inittab
 chmod 0644 termcap

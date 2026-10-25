@@ -12,10 +12,52 @@
 
 #define CB_LCD_WIDTH        400
 #define CB_LCD_HEIGHT       240
-#define CB_FONT_W           6
-#define CB_FONT_H           8
-#define CB_COLS             (CB_LCD_WIDTH / CB_FONT_W)     /* 66 */
-#define CB_ROWS             (CB_LCD_HEIGHT / CB_FONT_H)    /* 30 */
+
+/*
+ * Console font, picked at build time (make CB_FONT=...). The glyph is the
+ * font's own size; SCALE draws each glyph pixel as an X by Y block.
+ *
+ *   CB_FONT   font     cell    text size
+ *   4x8       4x8      4x8     100 x 30
+ *   6x8       6x8      6x8      66 x 30   (default)
+ *   8x8       8x8      8x8      50 x 30
+ *   8x16      8x8      8x16     50 x 15   (double height)
+ *   12x16     6x8      12x16    33 x 15   (double size)
+ *   16x16     8x8      16x16    25 x 15   (double size)
+ */
+#if defined(CB_FONT_4X8)
+#define CB_GLYPH_W  4
+#define CB_SCALE_X  1
+#define CB_SCALE_Y  1
+#elif defined(CB_FONT_8X8)
+#define CB_GLYPH_W  8
+#define CB_SCALE_X  1
+#define CB_SCALE_Y  1
+#elif defined(CB_FONT_8X16)
+#define CB_GLYPH_W  8
+#define CB_SCALE_X  1
+#define CB_SCALE_Y  2
+#elif defined(CB_FONT_12X16)
+#define CB_GLYPH_W  6
+#define CB_SCALE_X  2
+#define CB_SCALE_Y  2
+#elif defined(CB_FONT_16X16)
+#define CB_GLYPH_W  8
+#define CB_SCALE_X  2
+#define CB_SCALE_Y  2
+#else
+#ifndef CB_FONT_6X8
+#define CB_FONT_6X8
+#endif
+#define CB_GLYPH_W  6
+#define CB_SCALE_X  1
+#define CB_SCALE_Y  1
+#endif
+#define CB_GLYPH_H          8
+#define CB_FONT_W           (CB_GLYPH_W * CB_SCALE_X)
+#define CB_FONT_H           (CB_GLYPH_H * CB_SCALE_Y)
+#define CB_COLS             (CB_LCD_WIDTH / CB_FONT_W)
+#define CB_ROWS             (CB_LCD_HEIGHT / CB_FONT_H)
 #define CB_LINE_BYTES       (CB_LCD_WIDTH * 3 / 8)         /* 150 */
 
 /* 3-bit colours in panel order: bit2=R bit1=G bit0=B */

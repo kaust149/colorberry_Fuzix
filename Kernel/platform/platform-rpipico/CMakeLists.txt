@@ -10,6 +10,7 @@ set(PICO_COPY_TO_RAM 1)
 option(TOTALMEM "specify how much TOTALMEM is present" 0)
 option(COLORBERRY "build for a RP2040-PiZero in a ColorBerry handheld" OFF)
 option(CB_USE_SD "ColorBerry: use the SD card (GP18) instead of backlight control" OFF)
+set(CB_FONT "6x8" CACHE STRING "ColorBerry console font: 4x8 6x8 8x8 8x16 12x16 16x16")
 
 add_compile_definitions(
 		PICO_HEAP_SIZE=0x0
@@ -97,8 +98,18 @@ if(COLORBERRY)
 		colorberry.c
 		cb_term.c
 		cb_keys.c
-		../../font/font6x8.c
 	)
+	string(TOUPPER "${CB_FONT}" CB_FONT_UC)
+	if(CB_FONT_UC STREQUAL "4X8")
+		target_sources(fuzix PRIVATE ../../font/font4x8.c)
+	elseif(CB_FONT_UC MATCHES "^(8X8|8X16|16X16)$")
+		target_sources(fuzix PRIVATE ../../font/font8x8.c)
+	elseif(CB_FONT_UC MATCHES "^(6X8|12X16)$")
+		target_sources(fuzix PRIVATE ../../font/font6x8.c)
+	else()
+		message(FATAL_ERROR "CB_FONT must be one of 4x8 6x8 8x8 8x16 12x16 16x16")
+	endif()
+	target_compile_definitions(fuzix PRIVATE CB_FONT_${CB_FONT_UC})
 	# RAM is tight (everything runs from RAM): keep the new code small
 	set_source_files_properties(colorberry.c cb_term.c cb_keys.c
 		PROPERTIES COMPILE_OPTIONS "-Os")

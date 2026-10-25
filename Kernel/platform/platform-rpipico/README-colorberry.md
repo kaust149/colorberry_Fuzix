@@ -6,7 +6,8 @@ keyboard are the console, so no computer is needed once it is flashed.
 
 ## What works
 
-- **Screen:** JDI LPM027M128C 400x240 colour memory LCD as a 66x30 text console.
+- **Screen:** JDI LPM027M128C 400x240 colour memory LCD as a 66x30 text console
+  (other sizes with `CB_FONT`, see "Console font" below).
   ANSI colours, reverse, underline, cursor addressing, scroll regions, insert
   and delete line. The terminal type is `colorberry` and is set up for you on `tty1`.
 - **Keyboard:** Beepy-style keyboard controller over I2C, with the Linux
@@ -80,6 +81,36 @@ can be used, so there are two builds:
 With the default build, leave the SD slot empty or ignore it; the card is
 never clocked because its chip select stays high. If you switch builds, run
 `rm -rf build` first.
+
+## Console font
+
+Pick the console font when building with `CB_FONT`:
+
+| `CB_FONT` | Font | Text size | Notes |
+|---|---|---|---|
+| `4x8` | 4x8 | 100 x 30 | very small, most text on screen |
+| `6x8` | 6x8 | 66 x 30 | default |
+| `8x8` | 8x8 | 50 x 30 | bolder, PC-style |
+| `8x16` | 8x8, double height | 50 x 15 | tall, easy to read |
+| `12x16` | 6x8, double size | 33 x 15 | large |
+| `16x16` | 8x8, double size | 25 x 15 | largest |
+
+```
+make SUBTARGET=colorberry CB_FONT=8x16 image
+```
+
+Rebuild the kernel **and** the filesystem: the build writes the matching
+column and row count into `/etc/termcap` and the `tty1` getty line in
+`/etc/inittab`, so `vi`, `more` and other screen programs use the new
+size. Flash both `fuzix.uf2` and `filesystem.uf2`. Changing `CB_FONT` (or
+`CB_SD`) re-runs CMake automatically; there's no need to delete `build`.
+
+To keep your files and only change the kernel, flash just `fuzix.uf2`, then
+fix the size on the device: edit `/etc/inittab` so the `tty1` line ends in
+the new columns and rows (for example `colorberry 50 15`), and change `co#`
+and `li#` in the `colorberry` entry of `/etc/termcap`.
+
+The host test renders any font: `make -C colorberry/test CB_FONT=8x16 screen.png`.
 
 ## RP2350-PiZero
 
